@@ -76,10 +76,10 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/edit" element={<Profile />} />
-              <Route 
-                path="/connections" 
+              <Route
+                path="/connections"
                 element={
-                  <ComingSoonPage 
+                  <ComingSoonPage
                     title="Connections"
                     description="Discover and manage your professional developer network. Connect with like-minded developers, build meaningful relationships, and grow your career together."
                     icon={
@@ -88,12 +88,12 @@ function App() {
                       </svg>
                     }
                   />
-                } 
+                }
               />
-              <Route 
-                path="/messages" 
+              <Route
+                path="/messages"
                 element={
-                  <ComingSoonPage 
+                  <ComingSoonPage
                     title="Messages"
                     description="Start conversations with your connections. Share ideas, collaborate on projects, and build lasting professional relationships through seamless messaging."
                     icon={
@@ -102,12 +102,12 @@ function App() {
                       </svg>
                     }
                   />
-                } 
+                }
               />
-              <Route 
-                path="/notifications" 
+              <Route
+                path="/notifications"
                 element={
-                  <ComingSoonPage 
+                  <ComingSoonPage
                     title="Notifications"
                     description="Stay updated with real-time notifications about new connections, messages, and opportunities. Never miss an important update in your developer journey."
                     icon={
@@ -116,7 +116,7 @@ function App() {
                       </svg>
                     }
                   />
-                } 
+                }
               />
             </Route>
             <Route path="/home" element={<HomePage />} />
