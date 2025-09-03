@@ -82,7 +82,7 @@ const Feed = () => {
                 <BackgroundGradients />
                 <div className="relative px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center">
-                        <div className="space-y-8 mb-12 animate-fade-in">
+                        <div className="mt-14 mb-8 animate-fade-in">
                             <h1 className="text-6xl font-bold text-white leading-tight">
                                 <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-blue-300 bg-clip-text text-transparent animate-shimmer">
                                     bitBond
