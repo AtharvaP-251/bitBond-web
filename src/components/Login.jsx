@@ -36,7 +36,7 @@ const Login = () => {
             );
 
             dispatch(addUser(res.data));
-            navigate("/");
+            navigate("/feed");
         } catch (err) {
             console.error("Login failed:", err);
             setError(
@@ -204,7 +204,7 @@ const Login = () => {
                                 ></path>
                             </svg>
                         )}
-                        {isLoading ? "Signing in..." : "Login"}
+                        {isLoading ? "Logging in..." : "Login"}
                     </button>
 
                     <p className="text-sm text-center text-gray-600 dark:text-gray-400">

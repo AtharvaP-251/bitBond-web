@@ -43,7 +43,7 @@ export default function Signup() {
             );
 
             dispatch(addUser(res.data));
-            navigate("/");
+            navigate("/feed");
         } catch (err) {
             console.error("Signup failed:", err);
             setError(
