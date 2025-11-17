@@ -48,8 +48,10 @@ const Profile = () => {
                 github: user.github || '',
                 linkedin: user.linkedin || ''
             });
+        } else {
+            navigate('/login');
         }
-    }, [user]);
+    }, [user, navigate]);
 
     if (!user) {
         return (

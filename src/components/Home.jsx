@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const BackgroundGradients = ({ light = false }) => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -21,6 +23,13 @@ const BackgroundGradients = ({ light = false }) => (
 
 const Home = () => {
     const navigate = useNavigate();
+    const user = useSelector((store) => store.user);
+
+    useEffect(() => {
+        if (user) {
+            navigate("/feed");
+        }
+    }, [user, navigate]);
 
     const features = [
         {
