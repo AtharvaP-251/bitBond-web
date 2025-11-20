@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { BASE_URL } from "../utils/constants";
+import { BASE_URL, SWIPE_THRESHOLD } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 
 const Feed = () => {
@@ -15,7 +15,7 @@ const Feed = () => {
     const cardRef = useRef(null);
     const navigate = useNavigate();
 
-    const getFeed = async () => {
+    const getFeed = useCallback(async () => {
         if (!user) return;
         setIsLoading(true);
         try {
@@ -29,7 +29,7 @@ const Feed = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         if (!user) {
@@ -37,27 +37,19 @@ const Feed = () => {
             return;
         }
         getFeed();
-    }, [user]);
+    }, [user, navigate, getFeed]);
 
-    const handleSwipe = async (direction) => {
+    const handleSwipe = useCallback(async (direction) => {
         const currentProfile = feed[currentIndex];
+        if (!currentProfile) return;
         
         try {
-            if (direction === "right") {
-                // Send connection request
-                await axios.post(
-                    `${BASE_URL}/request/send/interested/${currentProfile._id}`,
-                    {},
-                    { withCredentials: true }
-                );
-            } else {
-                // Send ignore request
-                await axios.post(
-                    `${BASE_URL}/request/send/ignored/${currentProfile._id}`,
-                    {},
-                    { withCredentials: true }
-                );
-            }
+            const endpoint = direction === "right" ? "interested" : "ignored";
+            await axios.post(
+                `${BASE_URL}/request/send/${endpoint}/${currentProfile._id}`,
+                {},
+                { withCredentials: true }
+            );
         } catch (err) {
             console.error("Error sending request:", err);
         }
@@ -65,28 +57,27 @@ const Feed = () => {
         // Move to next profile
         setCurrentIndex((prev) => prev + 1);
         setDragOffset({ x: 0, y: 0 });
-    };
+    }, [feed, currentIndex]);
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = useCallback((e) => {
         setIsDragging(true);
         setDragStart({ x: e.clientX, y: e.clientY });
-    };
+    }, []);
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = useCallback((e) => {
         if (!isDragging || !dragStart) return;
         
         const offsetX = e.clientX - dragStart.x;
         const offsetY = e.clientY - dragStart.y;
         setDragOffset({ x: offsetX, y: offsetY });
-    };
+    }, [isDragging, dragStart]);
 
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         if (!isDragging) return;
         
         setIsDragging(false);
         
-        // Swipe threshold
-        if (Math.abs(dragOffset.x) > 100) {
+        if (Math.abs(dragOffset.x) > SWIPE_THRESHOLD) {
             if (dragOffset.x > 0) {
                 handleSwipe("right");
             } else {
@@ -97,30 +88,30 @@ const Feed = () => {
         }
         
         setDragStart(null);
-    };
+    }, [isDragging, dragOffset.x, handleSwipe]);
 
-    const handleTouchStart = (e) => {
+    const handleTouchStart = useCallback((e) => {
         setIsDragging(true);
         setDragStart({ 
             x: e.touches[0].clientX, 
             y: e.touches[0].clientY 
         });
-    };
+    }, []);
 
-    const handleTouchMove = (e) => {
+    const handleTouchMove = useCallback((e) => {
         if (!isDragging || !dragStart) return;
         
         const offsetX = e.touches[0].clientX - dragStart.x;
         const offsetY = e.touches[0].clientY - dragStart.y;
         setDragOffset({ x: offsetX, y: offsetY });
-    };
+    }, [isDragging, dragStart]);
 
-    const handleTouchEnd = () => {
+    const handleTouchEnd = useCallback(() => {
         if (!isDragging) return;
         
         setIsDragging(false);
         
-        if (Math.abs(dragOffset.x) > 100) {
+        if (Math.abs(dragOffset.x) > SWIPE_THRESHOLD) {
             if (dragOffset.x > 0) {
                 handleSwipe("right");
             } else {
@@ -131,7 +122,12 @@ const Feed = () => {
         }
         
         setDragStart(null);
-    };
+    }, [isDragging, dragOffset.x, handleSwipe]);
+
+    // All hooks must be called before any conditional returns
+    const currentProfile = useMemo(() => feed[currentIndex], [feed, currentIndex]);
+    const rotation = useMemo(() => dragOffset.x / 20, [dragOffset.x]);
+    const opacity = useMemo(() => 1 - Math.abs(dragOffset.x) / 300, [dragOffset.x]);
 
     if (isLoading) {
         return (
@@ -165,10 +161,6 @@ const Feed = () => {
             </div>
         );
     }
-
-    const currentProfile = feed[currentIndex];
-    const rotation = dragOffset.x / 20;
-    const opacity = 1 - Math.abs(dragOffset.x) / 300;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 pt-8 pb-8 px-4">

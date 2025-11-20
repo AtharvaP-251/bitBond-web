@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
@@ -10,11 +10,7 @@ const Notifications = () => {
     const [pagination, setPagination] = useState(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchNotifications();
-    }, [filter]);
-
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         try {
             setLoading(true);
             const unreadOnly = filter === "unread" ? "true" : "false";
@@ -31,54 +27,55 @@ const Notifications = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
 
-    const markAsRead = async (notificationId) => {
+    useEffect(() => {
+        fetchNotifications();
+    }, [filter, fetchNotifications]);
+
+    const markAsRead = useCallback(async (notificationId) => {
         try {
             await axios.patch(
                 `${BASE_URL}/notifications/read`,
                 { notificationIds: [notificationId] },
                 { withCredentials: true }
             );
-            // Update local state
-            setNotifications(
-                notifications.map((n) =>
+            setNotifications(prev =>
+                prev.map((n) =>
                     n._id === notificationId ? { ...n, isRead: true } : n
                 )
             );
         } catch (err) {
             console.error("Error marking notification as read:", err);
         }
-    };
+    }, []);
 
-    const markAllAsRead = async () => {
+    const markAllAsRead = useCallback(async () => {
         try {
             await axios.patch(
                 `${BASE_URL}/notifications/read`,
                 { markAllAsRead: true },
                 { withCredentials: true }
             );
-            // Update local state
-            setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+            setNotifications(prev => prev.map((n) => ({ ...n, isRead: true })));
         } catch (err) {
             console.error("Error marking all as read:", err);
         }
-    };
+    }, []);
 
-    const deleteNotification = async (notificationId) => {
+    const deleteNotification = useCallback(async (notificationId) => {
         try {
             await axios.delete(`${BASE_URL}/notifications`, {
                 data: { notificationIds: [notificationId] },
                 withCredentials: true,
             });
-            // Remove from local state
-            setNotifications(notifications.filter((n) => n._id !== notificationId));
+            setNotifications(prev => prev.filter((n) => n._id !== notificationId));
         } catch (err) {
             console.error("Error deleting notification:", err);
         }
-    };
+    }, []);
 
-    const deleteAllNotifications = async () => {
+    const deleteAllNotifications = useCallback(async () => {
         try {
             await axios.delete(`${BASE_URL}/notifications`, {
                 data: { deleteAll: true },
@@ -88,18 +85,16 @@ const Notifications = () => {
         } catch (err) {
             console.error("Error deleting all notifications:", err);
         }
-    };
+    }, []);
 
-    const handleNotificationClick = (notification) => {
-        // Mark as read
+    const handleNotificationClick = useCallback((notification) => {
         if (!notification.isRead) {
             markAsRead(notification._id);
         }
-        // Navigate to the link if available
         if (notification.link) {
             navigate(notification.link);
         }
-    };
+    }, [markAsRead, navigate]);
 
     const getNotificationIcon = (type) => {
         switch (type) {
@@ -152,7 +147,7 @@ const Notifications = () => {
         }
     };
 
-    const formatTime = (timestamp) => {
+    const formatTime = useCallback((timestamp) => {
         const date = new Date(timestamp);
         const now = new Date();
         const diff = now - date;
@@ -172,7 +167,7 @@ const Notifications = () => {
         } else {
             return "Just now";
         }
-    };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 py-8">

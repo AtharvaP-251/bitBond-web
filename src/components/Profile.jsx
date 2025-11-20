@@ -53,17 +53,6 @@ const Profile = () => {
         }
     }, [user, navigate]);
 
-    if (!user) {
-        return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Please log in</h2>
-                    <p className="text-gray-600 dark:text-gray-300">You need to be logged in to view your profile</p>
-                </div>
-            </div>
-        );
-    }
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -79,7 +68,16 @@ const Profile = () => {
         setSuccess('');
 
         try {
-            const res = await axios.patch(`${BASE_URL}/profile/edit`, formData, {
+            // Only send fields that the backend accepts
+            const allowedFields = ['firstName', 'lastName', 'emailId', 'photoUrl', 'about', 'gender', 'age', 'skills'];
+            const dataToSend = {};
+            allowedFields.forEach(field => {
+                if (formData[field] !== undefined && formData[field] !== '') {
+                    dataToSend[field] = formData[field];
+                }
+            });
+
+            const res = await axios.patch(`${BASE_URL}/profile/edit`, dataToSend, {
                 withCredentials: true
             });
             
@@ -93,7 +91,9 @@ const Profile = () => {
             }
         } catch (err) {
             console.error('Error updating profile:', err);
-            setError(err.response?.data?.message || 'Failed to update profile');
+            console.error('Error response:', err.response?.data);
+            const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to update profile';
+            setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to update profile');
         } finally {
             setIsLoading(false);
         }
@@ -127,6 +127,17 @@ const Profile = () => {
         }
     };
 
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Please log in</h2>
+                    <p className="text-gray-600 dark:text-gray-300">You need to be logged in to view your profile</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 pb-8">
             {/* Background Elements */}
@@ -147,7 +158,7 @@ const Profile = () => {
                             <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-1">
                                 <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
                                     <span className="text-4xl font-bold text-gradient">
-                                        {user.firstName?.[0]?.toUpperCase()}{user.lastName?.[0]?.toUpperCase()}
+                                        {(user.firstName?.[0] || 'U').toUpperCase()}{(user.lastName?.[0] || 'N').toUpperCase()}
                                     </span>
                                 </div>
                             </div>
@@ -403,11 +414,11 @@ const Profile = () => {
                                 )}
 
                                 {/* Skills */}
-                                {user.skills && (
+                                {user.skills && typeof user.skills === 'string' && user.skills.trim() && (
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Skills</h3>
                                         <div className="flex flex-wrap gap-2">
-                                            {user.skills.split(',').map((skill, index) => (
+                                            {user.skills.split(',').filter(skill => skill.trim()).map((skill, index) => (
                                                 <span
                                                     key={index}
                                                     className="px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full border border-blue-200 dark:border-blue-700"

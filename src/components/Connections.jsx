@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -14,15 +14,7 @@ const Connections = () => {
     const [selectedProfile, setSelectedProfile] = useState(null);
     const [showProfileModal, setShowProfileModal] = useState(false);
 
-    useEffect(() => {
-        if (!user) {
-            navigate("/login");
-            return;
-        }
-        fetchData();
-    }, [user]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
             const [connectionsRes, requestsRes] = await Promise.all([
@@ -36,31 +28,38 @@ const Connections = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const handleViewProfile = (profile) => {
+    useEffect(() => {
+        if (!user) {
+            navigate("/login");
+            return;
+        }
+        fetchData();
+    }, [user, navigate, fetchData]);
+
+    const handleViewProfile = useCallback((profile) => {
         setSelectedProfile(profile);
         setShowProfileModal(true);
-    };
+    }, []);
 
-    const closeProfileModal = () => {
+    const closeProfileModal = useCallback(() => {
         setShowProfileModal(false);
         setSelectedProfile(null);
-    };
+    }, []);
 
-    const handleReviewRequest = async (requestId, status) => {
+    const handleReviewRequest = useCallback(async (requestId, status) => {
         try {
             await axios.post(
                 `${BASE_URL}/review/send/${status}/${requestId}`,
                 {},
                 { withCredentials: true }
             );
-            // Refresh data
             fetchData();
         } catch (err) {
             console.error("Error reviewing request:", err);
         }
-    };
+    }, [fetchData]);
 
     if (!user) {
         return null;

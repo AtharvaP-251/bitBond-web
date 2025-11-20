@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { addUser } from "../utils/userSlice";
@@ -12,23 +12,27 @@ const Body = () => {
     const dispatch = useDispatch();
     const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-    // Fetch user profile on mount if not already loaded
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await axios.get(`${BASE_URL}/profile`, {
-                    withCredentials: true,
-                });
-                dispatch(addUser(res.data.data));
-            } catch (err) {
-                // User not logged in or token expired
-                console.log("Not authenticated");
-            } finally {
-                setIsAuthChecking(false);
-            }
-        };
-        fetchProfile();
+    const fetchProfile = useCallback(async () => {
+        try {
+            const res = await axios.get(`${BASE_URL}/profile`, {
+                withCredentials: true,
+            });
+            dispatch(addUser(res.data.data));
+        } catch (err) {
+            console.log("Not authenticated", err);
+        } finally {
+            setIsAuthChecking(false);
+        }
     }, [dispatch]);
+    
+    useEffect(() => {
+        // Skip if user already exists in Redux (e.g., from login)
+        if (user) {
+            setIsAuthChecking(false);
+            return;
+        }
+        fetchProfile();
+    }, [user, fetchProfile]);
 
     // Don't show navbar on login/signup pages
     const hideNavBar = ["/login", "/signup"].includes(location.pathname);

@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
-import { BASE_URL } from "../utils/constants";
+import { BASE_URL, POLLING_INTERVALS } from "../utils/constants";
 
 const Messages = () => {
     const user = useSelector((store) => store.user);
@@ -18,7 +18,7 @@ const Messages = () => {
     const lastFetchRef = useRef(0);
 
     useEffect(() => {
-        if (isAuthChecking) return; // Wait for auth check to complete
+        if (isAuthChecking) return;
         
         if (!user) {
             navigate("/login");
@@ -33,21 +33,20 @@ const Messages = () => {
         }
     }, [messages]);
 
-    // Auto-refresh messages every 3 seconds when a chat is selected
+    // Auto-refresh messages when chat is selected
     useEffect(() => {
-        if (!selectedChat) return;
+        if (!selectedChat || isSending) return;
 
         const interval = setInterval(() => {
-            // Only refresh if we're not currently sending and it's been more than 1 second since last fetch
-            if (!isSending && Date.now() - lastFetchRef.current > 1000) {
+            if (Date.now() - lastFetchRef.current > 1000) {
                 loadChatMessages(selectedChat, true);
             }
-        }, 3000);
+        }, POLLING_INTERVALS.MESSAGES);
 
         return () => clearInterval(interval);
     }, [selectedChat, isSending]);
 
-    const fetchConnections = async () => {
+    const fetchConnections = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await axios.get(`${BASE_URL}/user/requests/connections`, {
@@ -59,9 +58,9 @@ const Messages = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const loadChatMessages = async (connection, silent = false) => {
+    const loadChatMessages = useCallback(async (connection, silent = false) => {
         if (!silent) {
             setSelectedChat(connection);
         }
@@ -85,15 +84,15 @@ const Messages = () => {
                 setMessages([]);
             }
         }
-    };
+    }, [user?._id]);
 
-    const handleSendMessage = async (e) => {
+    const handleSendMessage = useCallback(async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedChat || isSending) return;
 
         setIsSending(true);
         const messageText = newMessage;
-        setNewMessage(""); // Clear input immediately for better UX
+        setNewMessage("");
 
         try {
             const res = await axios.post(
@@ -111,18 +110,17 @@ const Messages = () => {
             };
 
             setMessages((prev) => [...prev, message]);
-            lastFetchRef.current = Date.now(); // Update last fetch time
+            lastFetchRef.current = Date.now();
         } catch (err) {
             console.error("Error sending message:", err);
-            // Restore message on error
             setNewMessage(messageText);
             alert("Failed to send message. Please try again.");
         } finally {
             setIsSending(false);
         }
-    };
+    }, [newMessage, selectedChat, isSending, user?._id]);
 
-    const formatTime = (date) => {
+    const formatTime = useCallback((date) => {
         const now = new Date();
         const diff = now - date;
         const hours = Math.floor(diff / 3600000);
@@ -137,7 +135,7 @@ const Messages = () => {
         } else {
             return "Just now";
         }
-    };
+    }, []);
 
     if (isAuthChecking) {
         return (

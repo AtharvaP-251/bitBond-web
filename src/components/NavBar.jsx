@@ -1,10 +1,10 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { removeUser } from "../utils/userSlice";
 import { toggleTheme } from "../utils/themeSlice";
 import axios from "axios";
-import { BASE_URL } from "../utils/constants";
+import { BASE_URL, POLLING_INTERVALS } from "../utils/constants";
 
 const NavBar = () => {
     const user = useSelector((store) => store.user);
@@ -26,30 +26,28 @@ const NavBar = () => {
         }
     }, [isDarkMode]);
 
-    // Fetch unread notification count
-    useEffect(() => {
-        const fetchUnreadCount = async () => {
-            if (!user) return;
-            try {
-                const response = await axios.get(
-                    `${BASE_URL}/notifications/unread-count`,
-                    { withCredentials: true }
-                );
-                if (response.data.success) {
-                    setUnreadCount(response.data.count);
-                }
-            } catch (err) {
-                console.error("Error fetching unread count:", err);
+    const fetchUnreadCount = useCallback(async () => {
+        if (!user) return;
+        try {
+            const response = await axios.get(
+                `${BASE_URL}/notifications/unread-count`,
+                { withCredentials: true }
+            );
+            if (response.data.success) {
+                setUnreadCount(response.data.count);
             }
-        };
-
-        fetchUnreadCount();
-        // Poll every 30 seconds for new notifications
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
+        } catch (err) {
+            console.error("Error fetching unread count:", err);
+        }
     }, [user]);
 
-    const handleLogout = async () => {
+    useEffect(() => {
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, POLLING_INTERVALS.NOTIFICATIONS);
+        return () => clearInterval(interval);
+    }, [fetchUnreadCount]);
+
+    const handleLogout = useCallback(async () => {
         try {
             await axios.post(`${BASE_URL}/auth/logout`, {}, { withCredentials: true });
             dispatch(removeUser());
@@ -57,11 +55,11 @@ const NavBar = () => {
         } catch (err) {
             console.error("Logout failed:", err);
         }
-    };
+    }, [dispatch, navigate]);
 
-    const isActiveRoute = (path) => {
+    const isActiveRoute = useCallback((path) => {
         return location.pathname === path;
-    };
+    }, [location.pathname]);
 
     const NavItem = ({ to, children, onClick }) => (
         <button
