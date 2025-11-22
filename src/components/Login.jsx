@@ -55,7 +55,7 @@ const Login = () => {
                 <div className="absolute -bottom-40 -left-32 w-80 h-80 rounded-full bg-gradient-to-r from-indigo-700 to-emerald-500 opacity-10 blur-3xl animate-pulse delay-700"></div>
             </div>
 
-            <div className="relative max-w-md w-full bg-white/90 dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6 backdrop-blur-sm">
+            <div className="relative max-w-md w-full bg-white/90 dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6 backdrop-blur-sm animate-card-enter">
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -69,7 +69,7 @@ const Login = () => {
                 {/* Login Form */}
                 <form className="space-y-4" onSubmit={handleLogin}>
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 dark:border-red-600 rounded-md p-3 animate-slide-up">
+                        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 dark:border-red-600 rounded-md p-3 animate-error-shake">
                             <p className="text-sm text-red-700 dark:text-red-400 font-medium">
                                 {error}
                             </p>
@@ -88,7 +88,7 @@ const Login = () => {
                             name="email"
                             type="email"
                             required
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-professional"
                             placeholder="Enter your email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -108,7 +108,7 @@ const Login = () => {
                                 name="password"
                                 type={showPassword ? "text" : "password"}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors pr-10"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-professional pr-10"
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -116,7 +116,7 @@ const Login = () => {
                             <button
                                 type="button"
                                 aria-label="Toggle password visibility"
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 btn-minimal"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
                                 {showPassword ? (
@@ -127,9 +127,10 @@ const Login = () => {
                                         viewBox="0 0 24 24"
                                     >
                                         <path
+                                            strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l6.878 6.878M12 12l-3.878-3.878"
+                                            d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
                                         />
                                     </svg>
                                 ) : (
@@ -180,7 +181,8 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed btn-minimal shadow-lg"
+                        style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out' }}
                     >
                         {isLoading && (
                             <svg

@@ -158,7 +158,8 @@ const Feed = () => {
                     <p className="text-gray-400 mb-8">You've seen all available developers. Check back later for more connections!</p>
                     <button
                         onClick={getFeed}
-                        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl"
+                        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-xl btn-minimal"
+                        style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
                     >
                         Refresh Feed
                     </button>
@@ -171,7 +172,7 @@ const Feed = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 pt-8 pb-8 px-4">
             <div className="max-w-sm mx-auto">
                 {/* Header */}
-                <div className="text-center mb-6">
+                <div className="text-center mb-6 animate-modal-enter">
                     <h1 className="text-3xl font-bold text-white mb-2">Discover Developers</h1>
                     <p className="text-gray-400">
                         {currentIndex + 1} / {feed.length}
@@ -190,10 +191,10 @@ const Feed = () => {
                     {/* Current card */}
                     <div
                         ref={cardRef}
-                        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                        className="absolute inset-0 cursor-grab active:cursor-grabbing animate-card-enter"
                         style={{
                             transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
-                            transition: isDragging ? "none" : "transform 0.3s ease",
+                            transition: isDragging ? "none" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                             opacity: opacity,
                         }}
                         onMouseDown={handleMouseDown}
@@ -210,8 +211,16 @@ const Feed = () => {
                                 <div className="absolute inset-0 bg-black/20"></div>
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-14 h-14 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold text-white">
-                                            {currentProfile.firstName?.[0]?.toUpperCase()}{currentProfile.lastName?.[0]?.toUpperCase()}
+                                        <div className="w-14 h-14 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold text-white overflow-hidden">
+                                            {currentProfile.photoUrl ? (
+                                                <img 
+                                                    src={currentProfile.photoUrl} 
+                                                    alt={currentProfile.firstName}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <>{currentProfile.firstName?.[0]?.toUpperCase()}{currentProfile.lastName?.[0]?.toUpperCase()}</>
+                                            )}
                                         </div>
                                         <div>
                                             <h2 className="text-xl font-bold text-white">
@@ -276,10 +285,11 @@ const Feed = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-center items-center space-x-4 mt-6">
+                <div className="flex justify-center items-center space-x-4 mt-6 animate-fade-in">
                     <button
                         onClick={() => handleSwipe("left")}
-                        className="w-14 h-14 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-full flex items-center justify-center shadow-xl transform hover:scale-110 transition-all duration-200"
+                        className="w-14 h-14 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-full flex items-center justify-center shadow-xl btn-minimal"
+                        style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
                         title="Pass"
                     >
                         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -289,7 +299,8 @@ const Feed = () => {
                     
                     <button
                         onClick={() => handleSwipe("right")}
-                        className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full flex items-center justify-center shadow-xl transform hover:scale-110 transition-all duration-200"
+                        className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full flex items-center justify-center shadow-xl btn-minimal"
+                        style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
                         title="Interested"
                     >
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

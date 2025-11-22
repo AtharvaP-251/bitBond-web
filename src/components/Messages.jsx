@@ -15,6 +15,7 @@ const Messages = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [lastMessages, setLastMessages] = useState({});
+    const [lastMessageId, setLastMessageId] = useState(null);
     const messagesEndRef = useRef(null);
     const lastFetchRef = useRef(0);
 
@@ -135,6 +136,7 @@ const Messages = () => {
             };
 
             setMessages((prev) => [...prev, message]);
+            setLastMessageId(message.id); // Track the newly sent message
             
             // Update last message in sidebar
             setLastMessages((prev) => ({
@@ -215,24 +217,30 @@ const Messages = () => {
                                 <p className="text-gray-400 text-sm mb-4">Start connecting with developers to chat</p>
                                 <button
                                     onClick={() => navigate("/feed")}
-                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-sm font-medium transition-all"
+                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-sm font-medium btn-minimal shadow-lg"
+                                    style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
                                 >
                                     Discover Developers
                                 </button>
                             </div>
                         ) : (
                             <div>
-                                {connections.map((connection) => {
+                                {connections.map((connection, index) => {
                                     const lastMsg = lastMessages[connection._id];
                                     return (
                                         <button
                                             key={connection._id}
                                             onClick={() => loadChatMessages(connection)}
-                                            className={`w-full p-4 flex items-center space-x-3 hover:bg-gray-700/50 transition-colors border-l-4 ${
+                                            className={`w-full p-4 flex items-center space-x-3 hover:bg-gray-700/50 border-l-4 btn-minimal animate-card-enter ${
                                                 selectedChat?._id === connection._id
                                                     ? "border-blue-500 bg-gray-700/50"
                                                     : "border-transparent"
                                             }`}
+                                            style={{
+                                                animationDelay: `${index * 30}ms`,
+                                                animationFillMode: 'backwards',
+                                                transition: 'background-color 200ms ease-out'
+                                            }}
                                         >
                                             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                                                 {connection.firstName?.[0]?.toUpperCase()}{connection.lastName?.[0]?.toUpperCase()}
@@ -262,7 +270,7 @@ const Messages = () => {
                     {selectedChat ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-4 bg-gray-800/50 border-b border-gray-700 flex items-center space-x-3">
+                            <div className="p-4 bg-gray-800/50 border-b border-gray-700 flex items-center space-x-3 animate-modal-enter">
                                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                                     {selectedChat.firstName?.[0]?.toUpperCase()}{selectedChat.lastName?.[0]?.toUpperCase()}
                                 </div>
@@ -276,27 +284,38 @@ const Messages = () => {
 
                             {/* Messages */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                                {messages.map((message) => (
-                                    <div
-                                        key={message.id}
-                                        className={`flex ${message.isOwn ? "justify-end" : "justify-start"}`}
-                                    >
-                                        <div className={`max-w-xs lg:max-w-md`}>
-                                            <div
-                                                className={`rounded-2xl px-4 py-2 ${
-                                                    message.isOwn
-                                                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                                                        : "bg-gray-700 text-white"
-                                                }`}
-                                            >
-                                                <p className="text-sm">{message.text}</p>
+                                {messages.map((message, index) => {
+                                    const isNewMessage = message.id === lastMessageId;
+                                    const isLastFewMessages = index >= messages.length - 3;
+                                    
+                                    return (
+                                        <div
+                                            key={message.id}
+                                            className={`flex ${
+                                                message.isOwn ? "justify-end" : "justify-start"
+                                            } ${isNewMessage ? 'animate-message' : ''}`}
+                                            style={{
+                                                animationDelay: isNewMessage ? '0ms' : undefined
+                                            }}
+                                        >
+                                            <div className={`max-w-xs lg:max-w-md`}>
+                                                <div
+                                                    className={`rounded-2xl px-4 py-2 ${
+                                                        message.isOwn
+                                                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                                                            : "bg-gray-700 text-white hover:bg-gray-600"
+                                                    }`}
+                                                    style={{ transition: 'background-color 200ms ease-out' }}
+                                                >
+                                                    <p className="text-sm">{message.text}</p>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1 px-2">
+                                                    {formatTime(message.timestamp)}
+                                                </p>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1 px-2">
-                                                {formatTime(message.timestamp)}
-                                            </p>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 <div ref={messagesEndRef} />
                             </div>
 
@@ -308,12 +327,13 @@ const Messages = () => {
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         placeholder="Type a message..."
-                                        className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                                        className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 input-professional"
                                     />
                                     <button
                                         type="submit"
                                         disabled={!newMessage.trim() || isSending}
-                                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all flex items-center space-x-2"
+                                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold flex items-center space-x-2 btn-minimal shadow-lg"
+                                        style={{ transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
                                     >
                                         {isSending ? (
                                             <>

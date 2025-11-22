@@ -1,9 +1,114 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Minimal, standards-based animations */
+/* Duration: 150-250ms | Easing: ease-out / ease-in-out | Properties: transform & opacity only */
+
+/* Fade animations */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Slide animations for cards/tiles */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal/drawer animations */
+@keyframes modalEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dropdown/menu slide */
+@keyframes dropdownSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tooltip/toast animations */
+@keyframes tooltipFade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Message item animation */
+@keyframes messageFade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Badge count update - subtle scale */
+@keyframes badgeUpdate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Error shake - only on submission failure */
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
 @layer components {
   .input-professional {
-    @apply px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+    @apply px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800;
+    transition: opacity 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out;
+  }
+  
+  .input-professional:focus {
+    @apply ring-2 ring-blue-500 border-blue-500;
+    transform: scale(1.01);
   }
   
   .text-gradient {
@@ -16,5 +121,94 @@
   
   .shadow-professional-lg {
     @apply shadow-xl;
+  }
+
+  /* Button styles - minimal, consistent */
+  .btn-minimal {
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+  
+  .btn-minimal:hover {
+    opacity: 0.92;
+  }
+  
+  .btn-minimal:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-minimal:focus-visible {
+    @apply ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* Glass morphism effect */
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/90 dark:bg-gray-800/90;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  }
+
+  /* Card/tile mount animation */
+  .animate-card-enter {
+    animation: slideUpFade 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Modal/drawer animations */
+  .animate-modal-enter {
+    animation: modalEnter 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Dropdown/menu slide */
+  .animate-dropdown {
+    animation: dropdownSlide 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Fade in only */
+  .animate-fade-in {
+    animation: fadeIn 200ms ease-out;
+  }
+
+  /* Tooltip/toast */
+  .animate-tooltip {
+    animation: tooltipFade 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Message item */
+  .animate-message {
+    animation: messageFade 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Badge update */
+  .animate-badge-update {
+    animation: badgeUpdate 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Error shake */
+  .animate-error-shake {
+    animation: errorShake 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Reduced motion support - fully disable */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .btn-minimal,
+    .input-professional,
+    .animate-card-enter,
+    .animate-modal-enter,
+    .animate-dropdown,
+    .animate-fade-in,
+    .animate-tooltip,
+    .animate-message,
+    .animate-badge-update,
+    .animate-error-shake {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
   }
 }

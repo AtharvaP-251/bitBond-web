@@ -104,7 +104,7 @@ const Connections = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 pt-20 pb-12 px-4">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-8">
+                <div className="text-center mb-8 animate-slide-down">
                     <h1 className="text-4xl font-bold text-white mb-3">Connections</h1>
                     <p className="text-gray-400 text-base">
                         Manage your professional developer network
@@ -116,7 +116,7 @@ const Connections = () => {
                     <div className="bg-gray-800/50 rounded-xl p-1.5 inline-flex flex-wrap gap-2">
                         <button
                             onClick={() => setActiveTab("connections")}
-                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 text-sm ${
+                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 text-sm btn-bounce ${
                                 activeTab === "connections"
                                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                                     : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -131,7 +131,7 @@ const Connections = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab("requests")}
-                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 relative text-sm ${
+                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 relative text-sm btn-bounce ${
                                 activeTab === "requests"
                                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                                     : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -146,7 +146,7 @@ const Connections = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab("passed")}
-                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 text-sm ${
+                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 text-sm btn-bounce ${
                                 activeTab === "passed"
                                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                                     : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -185,7 +185,7 @@ const Connections = () => {
                                         <p className="text-gray-400 mb-8 max-w-md mx-auto">Start swiping to build your developer network and connect with like-minded professionals!</p>
                                         <button
                                             onClick={() => navigate("/feed")}
-                                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg btn-bounce"
                                         >
                                             Discover Developers
                                         </button>
@@ -195,11 +195,19 @@ const Connections = () => {
                                         {connections.map((connection) => (
                                             <div
                                                 key={connection._id}
-                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col group"
+                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col group animate-bounce-in"
                                             >
                                                 <div className="flex items-start space-x-4 mb-4">
-                                                    <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-lg font-bold text-white flex-shrink-0 shadow-lg">
-                                                        {connection.firstName?.[0]?.toUpperCase()}{connection.lastName?.[0]?.toUpperCase()}
+                                                    <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-lg font-bold text-white flex-shrink-0 shadow-lg overflow-hidden">
+                                                        {connection.photoUrl ? (
+                                                            <img 
+                                                                src={connection.photoUrl} 
+                                                                alt={connection.firstName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <>{connection.firstName?.[0]?.toUpperCase()}{connection.lastName?.[0]?.toUpperCase()}</>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="text-lg font-bold text-white truncate group-hover:text-blue-400 transition-colors">
@@ -242,7 +250,7 @@ const Connections = () => {
 
                                                 <button 
                                                     onClick={() => handleViewProfile(connection)}
-                                                    className="w-full py-3 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 text-sm font-medium mt-auto group-hover:bg-blue-600/20 group-hover:border group-hover:border-blue-500/50"
+                                                    className="w-full py-3 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 text-sm font-medium mt-auto group-hover:bg-blue-600/20 group-hover:border group-hover:border-blue-500/50 btn-bounce"
                                                 >
                                                     View Profile
                                                 </button>
@@ -270,12 +278,20 @@ const Connections = () => {
                                         {pendingRequests.map((request) => (
                                             <div
                                                 key={request._id}
-                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg"
+                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg animate-bounce-in"
                                             >
                                                 <div className="flex items-center justify-between flex-wrap gap-4">
                                                     <div className="flex items-center space-x-4 flex-1 min-w-0">
-                                                        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-xl font-bold text-white flex-shrink-0 shadow-lg">
-                                                            {request.fromUserId?.firstName?.[0]?.toUpperCase()}{request.fromUserId?.lastName?.[0]?.toUpperCase()}
+                                                        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-xl font-bold text-white flex-shrink-0 shadow-lg overflow-hidden">
+                                                            {request.fromUserId?.photoUrl ? (
+                                                                <img 
+                                                                    src={request.fromUserId.photoUrl} 
+                                                                    alt={request.fromUserId.firstName}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <>{request.fromUserId?.firstName?.[0]?.toUpperCase()}{request.fromUserId?.lastName?.[0]?.toUpperCase()}</>
+                                                            )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <h3 className="text-xl font-bold text-white truncate">
@@ -288,13 +304,13 @@ const Connections = () => {
                                                     <div className="flex space-x-3">
                                                         <button
                                                             onClick={() => handleReviewRequest(request.fromUserId._id, "accepted")}
-                                                            className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-md"
+                                                            className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-md btn-bounce"
                                                         >
                                                             Accept
                                                         </button>
                                                         <button
                                                             onClick={() => handleReviewRequest(request.fromUserId._id, "rejected")}
-                                                            className="px-6 py-2.5 bg-gray-700/70 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200"
+                                                            className="px-6 py-2.5 bg-gray-700/70 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200 btn-bounce"
                                                         >
                                                             Reject
                                                         </button>
@@ -320,7 +336,7 @@ const Connections = () => {
                                         <p className="text-gray-400 mb-8 max-w-md mx-auto">You haven't passed on anyone yet! Browse profiles to expand your network.</p>
                                         <button
                                             onClick={() => navigate("/feed")}
-                                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg btn-bounce"
                                         >
                                             Browse Profiles
                                         </button>
@@ -330,11 +346,19 @@ const Connections = () => {
                                         {passedProfiles.map((profile) => (
                                             <div
                                                 key={profile._id}
-                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-orange-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 flex flex-col group"
+                                                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-orange-500/50 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/10 flex flex-col group animate-bounce-in"
                                             >
                                                 <div className="flex items-start space-x-4 mb-4">
-                                                    <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-lg font-bold text-white flex-shrink-0 shadow-lg">
-                                                        {profile.firstName?.[0]?.toUpperCase()}{profile.lastName?.[0]?.toUpperCase()}
+                                                    <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-lg font-bold text-white flex-shrink-0 shadow-lg overflow-hidden">
+                                                        {profile.photoUrl ? (
+                                                            <img 
+                                                                src={profile.photoUrl} 
+                                                                alt={profile.firstName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <>{profile.firstName?.[0]?.toUpperCase()}{profile.lastName?.[0]?.toUpperCase()}</>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="text-lg font-bold text-white truncate group-hover:text-orange-400 transition-colors">
@@ -378,13 +402,13 @@ const Connections = () => {
                                                 <div className="flex space-x-2 mt-auto">
                                                     <button 
                                                         onClick={() => handleViewProfile(profile)}
-                                                        className="flex-1 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                                                        className="flex-1 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 text-sm font-medium btn-bounce"
                                                     >
                                                         View Profile
                                                     </button>
                                                     <button 
                                                         onClick={() => handleSendInterest(profile._id)}
-                                                        className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 text-sm font-medium transform hover:scale-105 shadow-md"
+                                                        className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-md btn-bounce"
                                                     >
                                                         Send Interest
                                                     </button>
@@ -417,8 +441,16 @@ const Connections = () => {
                             
                             {/* Profile Picture */}
                             <div className="absolute -bottom-16 left-8">
-                                <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl font-bold text-white border-4 border-gray-900">
-                                    {selectedProfile.firstName?.[0]?.toUpperCase()}{selectedProfile.lastName?.[0]?.toUpperCase()}
+                                <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl font-bold text-white border-4 border-gray-900 overflow-hidden">
+                                    {selectedProfile.photoUrl ? (
+                                        <img 
+                                            src={selectedProfile.photoUrl} 
+                                            alt={`${selectedProfile.firstName} ${selectedProfile.lastName}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <>{selectedProfile.firstName?.[0]?.toUpperCase()}{selectedProfile.lastName?.[0]?.toUpperCase()}</>
+                                    )}
                                 </div>
                             </div>
                         </div>

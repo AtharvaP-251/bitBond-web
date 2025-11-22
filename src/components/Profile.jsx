@@ -17,6 +17,8 @@ const Profile = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState(null);
     
     const [formData, setFormData] = useState({
         firstName: '',
@@ -69,6 +71,60 @@ const Profile = () => {
         }));
     };
 
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setError('Please select an image file');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image size should be less than 5MB');
+            return;
+        }
+
+        setUploadingPhoto(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+
+            // Upload to server
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            const res = await axios.post(`${BASE_URL}/profile/upload-photo`, formData, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            // Update user data in Redux
+            dispatch(addUser(res.data.data));
+            setSuccess('Profile photo updated successfully!');
+            // Clear preview immediately after upload succeeds
+            setPhotoPreview(null);
+        } catch (err) {
+            console.error('Error uploading photo:', err);
+            const errorMessage = err.response?.data?.message || 'Failed to upload photo';
+            setError(errorMessage);
+            setPhotoPreview(null);
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -111,6 +167,7 @@ const Profile = () => {
         setIsEditing(false);
         setError('');
         setSuccess('');
+        setPhotoPreview(null);
         
         // Reset form data to original user data
         if (user) {
@@ -167,18 +224,61 @@ const Profile = () => {
 
             <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Profile Header */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-professional-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-professional-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8 animate-bounce-in">
                     {/* Cover Section */}
                     <div className="relative">
                         <div className="h-48 bg-gradient-to-br from-blue-500 via-purple-500 to-teal-500"></div>
                         
                         {/* Profile Picture */}
                         <div className="absolute -bottom-16 left-8">
-                            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-1">
-                                <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
-                                    <span className="text-4xl font-bold text-gradient">
-                                        {(user.firstName?.[0] || 'U').toUpperCase()}{(user.lastName?.[0] || 'N').toUpperCase()}
-                                    </span>
+                            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-1 shadow-xl">
+                                <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden relative group">
+                                    {photoPreview ? (
+                                        <img 
+                                            src={photoPreview} 
+                                            alt={user.firstName}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : user.photoUrl ? (
+                                        <img 
+                                            src={user.photoUrl} 
+                                            alt={user.firstName}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                const initials = document.createElement('span');
+                                                initials.className = 'text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent';
+                                                initials.textContent = `${(user.firstName?.[0] || 'U').toUpperCase()}${(user.lastName?.[0] || 'N').toUpperCase()}`;
+                                                e.target.parentElement.appendChild(initials);
+                                            }}
+                                        />
+                                    ) : (
+                                        <span className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                                            {(user.firstName?.[0] || 'U').toUpperCase()}{(user.lastName?.[0] || 'N').toUpperCase()}
+                                        </span>
+                                    )}
+                                    {isEditing && (
+                                        <label className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                onChange={handlePhotoUpload}
+                                                className="hidden"
+                                                disabled={uploadingPhoto}
+                                            />
+                                            {uploadingPhoto ? (
+                                                <svg className="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                            )}
+                                        </label>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -188,7 +288,7 @@ const Profile = () => {
                             <div className="absolute top-4 right-4">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200"
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 btn-bounce"
                                 >
                                     <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -390,7 +490,7 @@ const Profile = () => {
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="flex-1 flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex-1 flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed btn-bounce shadow-lg"
                                     >
                                         {isLoading ? (
                                             <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -409,7 +509,7 @@ const Profile = () => {
                                     <button
                                         type="button"
                                         onClick={handleCancel}
-                                        className="flex-1 flex items-center justify-center space-x-2 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-all duration-300"
+                                        className="flex-1 flex items-center justify-center space-x-2 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-all duration-200 btn-bounce"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

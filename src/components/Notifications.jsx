@@ -229,22 +229,24 @@ const Notifications = () => {
                     <div className="flex gap-2 flex-wrap">
                         <div className="flex rounded-lg overflow-hidden border border-gray-600">
                             <button
-                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                className={`px-4 py-2 text-sm font-medium ${
                                     filter === "all"
                                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                                 }`}
                                 onClick={() => setFilter("all")}
+                                style={{ transition: 'background-color 200ms ease-out' }}
                             >
                                 All
                             </button>
                             <button
-                                className={`px-4 py-2 text-sm font-medium transition-colors border-l border-gray-600 ${
+                                className={`px-4 py-2 text-sm font-medium border-l border-gray-600 ${
                                     filter === "unread"
                                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                                 }`}
                                 onClick={() => setFilter("unread")}
+                                style={{ transition: 'background-color 200ms ease-out' }}
                             >
                                 Unread
                             </button>
@@ -252,14 +254,16 @@ const Notifications = () => {
                         {notifications.length > 0 && (
                             <>
                                 <button 
-                                    className="px-4 py-2 text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
+                                    className="px-4 py-2 text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-lg border border-gray-600 btn-minimal"
                                     onClick={markAllAsRead}
+                                    style={{ transition: 'background-color 200ms ease-out' }}
                                 >
                                     Mark all as read
                                 </button>
                                 <button 
-                                    className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                    className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg btn-minimal"
                                     onClick={deleteAllNotifications}
+                                    style={{ transition: 'background-color 200ms ease-out' }}
                                 >
                                     Clear all
                                 </button>
@@ -295,10 +299,11 @@ const Notifications = () => {
                         {notifications.map((notification) => (
                             <div
                                 key={notification._id}
-                                className={`bg-gray-800/50 rounded-lg shadow-lg p-4 cursor-pointer hover:bg-gray-700/50 transition-all border ${
+                                className={`bg-gray-800/50 rounded-lg shadow-lg p-4 cursor-pointer hover:bg-gray-700/50 border ${
                                     !notification.isRead ? "border-l-4 border-blue-500 border-t border-r border-b border-gray-700" : "border-gray-700"
                                 }`}
                                 onClick={() => handleNotificationClick(notification)}
+                                style={{ transition: 'background-color 200ms ease-out' }}
                             >
                                 <div className="flex gap-4">
                                     {/* Icon */}
@@ -328,7 +333,8 @@ const Notifications = () => {
 
                                             {/* Delete button */}
                                             <button
-                                                className="w-8 h-8 rounded-full hover:bg-gray-600 flex items-center justify-center transition-colors text-gray-400 hover:text-white"
+                                                className="w-8 h-8 rounded-full hover:bg-gray-600 flex items-center justify-center text-gray-400 hover:text-white btn-minimal"
+                                                style={{ transition: 'background-color 200ms ease-out, color 200ms ease-out' }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     deleteNotification(notification._id);
