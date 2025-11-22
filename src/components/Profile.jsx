@@ -32,7 +32,9 @@ const Profile = () => {
         location: '',
         website: '',
         github: '',
-        linkedin: ''
+        linkedin: '',
+        experience: '',
+        availability: ''
     });
 
     // Update isEditing when route changes
@@ -56,7 +58,9 @@ const Profile = () => {
                 location: user.location || '',
                 website: user.website || '',
                 github: user.github || '',
-                linkedin: user.linkedin || ''
+                linkedin: user.linkedin || '',
+                experience: user.experience || '',
+                availability: user.availability || ''
             });
         } else {
             navigate('/login');
@@ -133,7 +137,7 @@ const Profile = () => {
 
         try {
             // Only send fields that the backend accepts
-            const allowedFields = ['firstName', 'lastName', 'emailId', 'photoUrl', 'about', 'gender', 'age', 'skills', 'title', 'location', 'website', 'github', 'linkedin'];
+            const allowedFields = ['firstName', 'lastName', 'emailId', 'photoUrl', 'about', 'gender', 'age', 'skills', 'title', 'location', 'website', 'github', 'linkedin', 'experience', 'availability'];
             const dataToSend = {};
             allowedFields.forEach(field => {
                 if (formData[field] !== undefined && formData[field] !== '') {
@@ -183,7 +187,9 @@ const Profile = () => {
                 location: user.location || '',
                 website: user.website || '',
                 github: user.github || '',
-                linkedin: user.linkedin || ''
+                linkedin: user.linkedin || '',
+                experience: user.experience || '',
+                availability: user.availability || ''
             });
         }
         
@@ -442,6 +448,41 @@ const Profile = () => {
                                     />
                                 </div>
 
+                                {/* Experience and Availability */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                            Experience (years)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="experience"
+                                            value={formData.experience}
+                                            onChange={handleInputChange}
+                                            min="0"
+                                            max="50"
+                                            className="input-professional w-full"
+                                            placeholder="e.g., 5"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                            Availability
+                                        </label>
+                                        <select
+                                            name="availability"
+                                            value={formData.availability}
+                                            onChange={handleInputChange}
+                                            className="input-professional w-full"
+                                        >
+                                            <option value="">Select Availability</option>
+                                            <option value="available">Available</option>
+                                            <option value="busy">Busy</option>
+                                            <option value="not-looking">Not Looking</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {/* Social Links */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
@@ -552,6 +593,23 @@ const Profile = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
                                                 {user.location}
+                                            </span>
+                                        )}
+                                        {user.experience !== undefined && user.experience !== null && (
+                                            <span className="flex items-center">
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                                {user.experience} years experience
+                                            </span>
+                                        )}
+                                        {user.availability && (
+                                            <span className={`flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                                                user.availability === 'available' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                                                user.availability === 'busy' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                                                'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                                            }`}>
+                                                {user.availability.charAt(0).toUpperCase() + user.availability.slice(1).replace('-', ' ')}
                                             </span>
                                         )}
                                     </div>

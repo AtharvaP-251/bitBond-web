@@ -16,6 +16,7 @@ const Feed = lazy(() => import('./components/Feed.jsx'))
 const ConnectionsPage = lazy(() => import('./components/Connections.jsx'))
 const MessagesPage = lazy(() => import('./components/Messages.jsx'))
 const NotificationsPage = lazy(() => import('./components/Notifications.jsx'))
+const SearchPage = lazy(() => import('./components/Search.jsx'))
 
 // Loading component
 const LoadingFallback = () => (
@@ -43,6 +44,7 @@ function App() {
               <Route path="/connections" element={<ConnectionsPage />} />
               <Route path="/messages" element={<MessagesPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/search" element={<SearchPage />} />
             </Route>
             <Route path="/home" element={<Home />} />
           </Routes>

@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { BASE_URL, POLLING_INTERVALS } from "../utils/constants";
+import { io } from "socket.io-client";
 
 const Messages = () => {
     const user = useSelector((store) => store.user);
@@ -18,6 +19,8 @@ const Messages = () => {
     const [lastMessageId, setLastMessageId] = useState(null);
     const messagesEndRef = useRef(null);
     const lastFetchRef = useRef(0);
+    const socketRef = useRef(null);
+    const messageIdsRef = useRef(new Set());
 
     useEffect(() => {
         if (isAuthChecking) return;
@@ -35,18 +38,77 @@ const Messages = () => {
         }
     }, [messages]);
 
-    // Auto-refresh messages when chat is selected
+    // Initialize socket connection and live message handling
     useEffect(() => {
-        if (!selectedChat || isSending) return;
+        if (isAuthChecking || !user) return;
 
-        const interval = setInterval(() => {
-            if (Date.now() - lastFetchRef.current > 1000) {
-                loadChatMessages(selectedChat, true);
+        // Connect with credentials so HTTP-only cookie is sent
+        socketRef.current = io(BASE_URL, {
+            withCredentials: true,
+            transports: ["websocket", "polling"]
+        });
+
+        socketRef.current.on("connect", () => {
+            console.log("Socket connected");
+        });
+
+        socketRef.current.on("connect_error", (error) => {
+            console.error("Socket connection error:", error);
+        });
+
+        const onNewMessage = (evt) => {
+            const { id, senderId, receiverId, text, createdAt } = evt || {};
+            if (!id || messageIdsRef.current.has(id)) return;
+
+            // Track ID to avoid duplicates
+            messageIdsRef.current.add(id);
+
+            // If this event belongs to the currently open chat, append to messages
+            // Only add if it's a message FROM another user (not our own sent message)
+            const isForSelected =
+                selectedChat &&
+                (
+                    (senderId === selectedChat._id && receiverId === user._id) ||
+                    (senderId === user._id && receiverId === selectedChat._id)
+                );
+
+            // Only add to messages if we didn't send it (to avoid duplicate)
+            if (isForSelected && senderId !== user._id) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id,
+                        senderId,
+                        text,
+                        timestamp: new Date(createdAt),
+                        isOwn: false
+                    }
+                ]);
+                lastFetchRef.current = Date.now();
             }
-        }, POLLING_INTERVALS.MESSAGES);
 
-        return () => clearInterval(interval);
-    }, [selectedChat, isSending]);
+            // Update last message summary in sidebar for received messages only
+            if (senderId !== user._id) {
+                setLastMessages((prev) => ({
+                    ...prev,
+                    [senderId]: {
+                        text,
+                        timestamp: new Date(createdAt),
+                        isOwn: false
+                    }
+                }));
+            }
+        };
+
+        socketRef.current.on("message:new", onNewMessage);
+
+        return () => {
+            try {
+                socketRef.current?.off("message:new", onNewMessage);
+                socketRef.current?.disconnect();
+            } catch {}
+        };
+    }, [isAuthChecking, user, selectedChat]);
 
     const fetchConnections = useCallback(async () => {
         setIsLoading(true);
@@ -102,6 +164,8 @@ const Messages = () => {
                 timestamp: new Date(msg.createdAt),
                 isOwn: msg.senderId === user._id,
             }));
+            // Track IDs to prevent duplicates from socket events
+            messageIdsRef.current = new Set(formattedMessages.map(m => m.id));
             setMessages(formattedMessages);
             lastFetchRef.current = Date.now();
         } catch (err) {
@@ -135,8 +199,10 @@ const Messages = () => {
                 isOwn: true,
             };
 
+            // Update local state immediately
             setMessages((prev) => [...prev, message]);
-            setLastMessageId(message.id); // Track the newly sent message
+            setLastMessageId(message.id);
+            messageIdsRef.current.add(message.id);
             
             // Update last message in sidebar
             setLastMessages((prev) => ({
