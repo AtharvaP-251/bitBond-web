@@ -14,6 +14,7 @@ const Messages = () => {
     const [newMessage, setNewMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [lastMessages, setLastMessages] = useState({});
     const messagesEndRef = useRef(null);
     const lastFetchRef = useRef(0);
 
@@ -52,13 +53,37 @@ const Messages = () => {
             const res = await axios.get(`${BASE_URL}/user/requests/connections`, {
                 withCredentials: true,
             });
-            setConnections(res.data.data || []);
+            const connectionsData = res.data.data || [];
+            setConnections(connectionsData);
+            
+            // Fetch last message for each connection
+            const lastMessagesMap = {};
+            for (const connection of connectionsData) {
+                try {
+                    const msgRes = await axios.get(
+                        `${BASE_URL}/messages/conversation/${connection._id}`,
+                        { withCredentials: true }
+                    );
+                    const messages = msgRes.data.data || [];
+                    if (messages.length > 0) {
+                        const lastMsg = messages[messages.length - 1];
+                        lastMessagesMap[connection._id] = {
+                            text: lastMsg.text,
+                            timestamp: new Date(lastMsg.createdAt),
+                            isOwn: lastMsg.senderId === user._id
+                        };
+                    }
+                } catch (err) {
+                    console.error(`Error fetching messages for ${connection._id}:`, err);
+                }
+            }
+            setLastMessages(lastMessagesMap);
         } catch (err) {
             console.error("Error fetching connections:", err);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [user?._id]);
 
     const loadChatMessages = useCallback(async (connection, silent = false) => {
         if (!silent) {
@@ -110,6 +135,17 @@ const Messages = () => {
             };
 
             setMessages((prev) => [...prev, message]);
+            
+            // Update last message in sidebar
+            setLastMessages((prev) => ({
+                ...prev,
+                [selectedChat._id]: {
+                    text: messageText,
+                    timestamp: new Date(),
+                    isOwn: true
+                }
+            }));
+            
             lastFetchRef.current = Date.now();
         } catch (err) {
             console.error("Error sending message:", err);
@@ -186,27 +222,36 @@ const Messages = () => {
                             </div>
                         ) : (
                             <div>
-                                {connections.map((connection) => (
-                                    <button
-                                        key={connection._id}
-                                        onClick={() => loadChatMessages(connection)}
-                                        className={`w-full p-4 flex items-center space-x-3 hover:bg-gray-700/50 transition-colors border-l-4 ${
-                                            selectedChat?._id === connection._id
-                                                ? "border-blue-500 bg-gray-700/50"
-                                                : "border-transparent"
-                                        }`}
-                                    >
-                                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                            {connection.firstName?.[0]?.toUpperCase()}{connection.lastName?.[0]?.toUpperCase()}
-                                        </div>
-                                        <div className="flex-1 text-left min-w-0">
-                                            <h3 className="text-white font-semibold truncate">
-                                                {connection.firstName} {connection.lastName}
-                                            </h3>
-                                            <p className="text-gray-400 text-sm truncate">Click to start chatting</p>
-                                        </div>
-                                    </button>
-                                ))}
+                                {connections.map((connection) => {
+                                    const lastMsg = lastMessages[connection._id];
+                                    return (
+                                        <button
+                                            key={connection._id}
+                                            onClick={() => loadChatMessages(connection)}
+                                            className={`w-full p-4 flex items-center space-x-3 hover:bg-gray-700/50 transition-colors border-l-4 ${
+                                                selectedChat?._id === connection._id
+                                                    ? "border-blue-500 bg-gray-700/50"
+                                                    : "border-transparent"
+                                            }`}
+                                        >
+                                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                {connection.firstName?.[0]?.toUpperCase()}{connection.lastName?.[0]?.toUpperCase()}
+                                            </div>
+                                            <div className="flex-1 text-left min-w-0">
+                                                <h3 className="text-white font-semibold truncate">
+                                                    {connection.firstName} {connection.lastName}
+                                                </h3>
+                                                {lastMsg ? (
+                                                    <p className="text-gray-400 text-sm truncate">
+                                                        {lastMsg.isOwn ? 'You: ' : ''}{lastMsg.text}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-gray-400 text-sm truncate">Click to start chatting</p>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

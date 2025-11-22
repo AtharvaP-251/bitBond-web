@@ -2,10 +2,11 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL, SWIPE_THRESHOLD } from "../utils/constants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 const Feed = () => {
     const user = useSelector((store) => store.user);
+    const { isAuthChecking } = useOutletContext();
     const [feed, setFeed] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -32,12 +33,16 @@ const Feed = () => {
     }, [user]);
 
     useEffect(() => {
+        if (isAuthChecking) return;
+        
         if (!user) {
-            navigate("/");
+            console.log("Feed: No user found, redirecting to login");
+            navigate("/login");
             return;
         }
+        console.log("Feed: User authenticated, fetching feed", user);
         getFeed();
-    }, [user, navigate, getFeed]);
+    }, [user, navigate, getFeed, isAuthChecking]);
 
     const handleSwipe = useCallback(async (direction) => {
         const currentProfile = feed[currentIndex];
@@ -129,12 +134,12 @@ const Feed = () => {
     const rotation = useMemo(() => dragOffset.x / 20, [dragOffset.x]);
     const opacity = useMemo(() => 1 - Math.abs(dragOffset.x) / 300, [dragOffset.x]);
 
-    if (isLoading) {
+    if (isAuthChecking || isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-white text-lg">Loading profiles...</p>
+                    <p className="text-white text-lg">{isAuthChecking ? "Checking authentication..." : "Loading profiles..."}</p>
                 </div>
             </div>
         );
@@ -229,15 +234,18 @@ const Feed = () => {
                                     </div>
                                 )}
 
-                                {currentProfile.skills && (
+                                {currentProfile.skills && currentProfile.skills.length > 0 && (
                                     <div>
                                         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Skills</h3>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {currentProfile.skills.split(',').slice(0, 6).map((skill, idx) => (
+                                            {(Array.isArray(currentProfile.skills) 
+                                                ? currentProfile.skills 
+                                                : currentProfile.skills.split(',')
+                                            ).slice(0, 6).map((skill, idx) => (
                                                 <span
                                                     key={idx}
                                                     className="px-2.5 py-1 bg-gradient-to-r from-blue-600/30 to-purple-600/30 border border-blue-500/50 text-blue-300 text-xs font-medium rounded-full">
-                                                    {skill.trim()}
+                                                    {typeof skill === 'string' ? skill.trim() : skill}
                                                 </span>
                                             ))}
                                         </div>

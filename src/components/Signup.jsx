@@ -3,6 +3,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../utils/constants";
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ export default function Signup() {
 
         try {
             const res = await axios.post(
-                "http://localhost:3000/auth/signup",
+                `${BASE_URL}/auth/signup`,
                 {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -42,6 +43,7 @@ export default function Signup() {
                 { withCredentials: true }
             );
 
+            console.log("Signup successful, user data:", res.data);
             dispatch(addUser(res.data));
             navigate("/feed");
         } catch (err) {

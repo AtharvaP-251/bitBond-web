@@ -44,7 +44,17 @@ const NavBar = () => {
     useEffect(() => {
         fetchUnreadCount();
         const interval = setInterval(fetchUnreadCount, POLLING_INTERVALS.NOTIFICATIONS);
-        return () => clearInterval(interval);
+        
+        // Listen for custom event when notifications are marked as read
+        const handleNotificationsRead = () => {
+            fetchUnreadCount();
+        };
+        window.addEventListener('notificationsRead', handleNotificationsRead);
+        
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('notificationsRead', handleNotificationsRead);
+        };
     }, [fetchUnreadCount]);
 
     const handleLogout = useCallback(async () => {

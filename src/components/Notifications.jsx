@@ -1,18 +1,26 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 const Notifications = () => {
+    const user = useSelector((store) => store.user);
+    const { isAuthChecking } = useOutletContext();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [filter, setFilter] = useState("all"); // all, unread
     const [pagination, setPagination] = useState(null);
     const navigate = useNavigate();
 
-    const fetchNotifications = useCallback(async () => {
+    const fetchNotifications = useCallback(async (isInitialLoad = false) => {
         try {
-            setLoading(true);
+            if (isInitialLoad) {
+                setLoading(true);
+            } else {
+                setIsRefreshing(true);
+            }
             const unreadOnly = filter === "unread" ? "true" : "false";
             const response = await axios.get(
                 `${BASE_URL}/notifications?unreadOnly=${unreadOnly}`,
@@ -26,12 +34,20 @@ const Notifications = () => {
             console.error("Error fetching notifications:", err);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     }, [filter]);
 
     useEffect(() => {
-        fetchNotifications();
-    }, [filter, fetchNotifications]);
+        if (isAuthChecking) return;
+        
+        if (!user) {
+            navigate("/login");
+            return;
+        }
+        // Initial load only on first render
+        fetchNotifications(loading);
+    }, [filter, fetchNotifications, user, isAuthChecking, navigate]);
 
     const markAsRead = useCallback(async (notificationId) => {
         try {
@@ -58,6 +74,8 @@ const Notifications = () => {
                 { withCredentials: true }
             );
             setNotifications(prev => prev.map((n) => ({ ...n, isRead: true })));
+            // Dispatch custom event to trigger NavBar badge update
+            window.dispatchEvent(new Event('notificationsRead'));
         } catch (err) {
             console.error("Error marking all as read:", err);
         }
@@ -169,8 +187,23 @@ const Notifications = () => {
         }
     }, []);
 
+    if (isAuthChecking || loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 pt-20 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-white text-lg">{isAuthChecking ? "Checking authentication..." : "Loading notifications..."}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return null;
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 pt-20 py-8">
             <div className="container mx-auto px-4 max-w-4xl">
                 {/* Header */}
                 <div className="bg-gray-800/50 rounded-lg shadow-lg p-6 mb-6 border border-gray-700">
@@ -236,11 +269,7 @@ const Notifications = () => {
                 </div>
 
                 {/* Notifications List */}
-                {loading ? (
-                    <div className="flex justify-center items-center py-12">
-                        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                ) : notifications.length === 0 ? (
+                {notifications.length === 0 ? (
                     <div className="bg-gray-800/50 rounded-lg shadow-lg p-12 text-center border border-gray-700">
                         <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +282,16 @@ const Notifications = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
+                        {/* Subtle refreshing indicator */}
+                        {isRefreshing && (
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-8 z-10">
+                                <div className="bg-gray-700/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2">
+                                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                    <span className="text-xs text-gray-300">Updating...</span>
+                                </div>
+                            </div>
+                        )}
                         {notifications.map((notification) => (
                             <div
                                 key={notification._id}

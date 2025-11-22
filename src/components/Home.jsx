@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
 
@@ -24,12 +24,15 @@ const BackgroundGradients = ({ light = false }) => (
 const Home = () => {
     const navigate = useNavigate();
     const user = useSelector((store) => store.user);
+    const { isAuthChecking } = useOutletContext();
 
     useEffect(() => {
+        if (isAuthChecking) return;
+        
         if (user) {
             navigate("/feed");
         }
-    }, [user, navigate]);
+    }, [user, navigate, isAuthChecking]);
 
     const features = [
         {
@@ -48,6 +51,17 @@ const Home = () => {
                 "Engage in meaningful conversations, share ideas, and collaborate seamlessly with your network.",
         },
     ];
+
+    if (isAuthChecking) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-slate-800 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-white text-lg">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-slate-800 relative overflow-hidden flex items-center justify-center">

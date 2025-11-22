@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { addUser } from "../utils/userSlice";
 import { BASE_URL } from "../utils/constants";
 
 const Profile = () => {
     const user = useSelector((store) => store.user);
+    const { isAuthChecking } = useOutletContext();
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -32,7 +33,14 @@ const Profile = () => {
         linkedin: ''
     });
 
+    // Update isEditing when route changes
     useEffect(() => {
+        setIsEditing(isEditMode);
+    }, [isEditMode]);
+
+    useEffect(() => {
+        if (isAuthChecking) return;
+        
         if (user) {
             setFormData({
                 firstName: user.firstName || '',
@@ -41,7 +49,7 @@ const Profile = () => {
                 age: user.age || '',
                 gender: user.gender || '',
                 about: user.about || '',
-                skills: user.skills || '',
+                skills: Array.isArray(user.skills) ? user.skills.join(', ') : (user.skills || ''),
                 title: user.title || '',
                 location: user.location || '',
                 website: user.website || '',
@@ -51,7 +59,7 @@ const Profile = () => {
         } else {
             navigate('/login');
         }
-    }, [user, navigate]);
+    }, [user, navigate, isAuthChecking]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -69,7 +77,7 @@ const Profile = () => {
 
         try {
             // Only send fields that the backend accepts
-            const allowedFields = ['firstName', 'lastName', 'emailId', 'photoUrl', 'about', 'gender', 'age', 'skills'];
+            const allowedFields = ['firstName', 'lastName', 'emailId', 'photoUrl', 'about', 'gender', 'age', 'skills', 'title', 'location', 'website', 'github', 'linkedin'];
             const dataToSend = {};
             allowedFields.forEach(field => {
                 if (formData[field] !== undefined && formData[field] !== '') {
@@ -113,7 +121,7 @@ const Profile = () => {
                 age: user.age || '',
                 gender: user.gender || '',
                 about: user.about || '',
-                skills: user.skills || '',
+                skills: Array.isArray(user.skills) ? user.skills.join(', ') : (user.skills || ''),
                 title: user.title || '',
                 location: user.location || '',
                 website: user.website || '',
@@ -126,6 +134,17 @@ const Profile = () => {
             navigate('/profile');
         }
     };
+
+    if (isAuthChecking) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-900 dark:text-white text-lg">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!user) {
         return (
@@ -141,9 +160,9 @@ const Profile = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 pb-8">
             {/* Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-32 w-80 h-80 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-5 blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-32 w-80 h-80 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 opacity-5 blur-3xl"></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 -right-32 w-80 h-80 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-5 blur-3xl"></div>
+                <div className="absolute top-0 -left-32 w-80 h-80 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 opacity-5 blur-3xl"></div>
             </div>
 
             <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -278,6 +297,19 @@ const Profile = () => {
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                            Location
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="location"
+                                            value={formData.location}
+                                            onChange={handleInputChange}
+                                            className="input-professional w-full"
+                                            placeholder="e.g., San Francisco, CA"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* About */}
@@ -396,11 +428,33 @@ const Profile = () => {
                                     <p className="text-xl text-blue-600 dark:text-blue-400 font-medium mb-2">
                                         {user.title || 'Software Developer'}
                                     </p>
-                                    {user.age && (
-                                        <p className="text-gray-600 dark:text-gray-300">
-                                            {user.age} years old
-                                        </p>
-                                    )}
+                                    <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-300">
+                                        {user.age && (
+                                            <span className="flex items-center">
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {user.age} years old
+                                            </span>
+                                        )}
+                                        {user.gender && (
+                                            <span className="flex items-center capitalize">
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                {user.gender}
+                                            </span>
+                                        )}
+                                        {user.location && (
+                                            <span className="flex items-center">
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {user.location}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* About */}
@@ -414,16 +468,19 @@ const Profile = () => {
                                 )}
 
                                 {/* Skills */}
-                                {user.skills && typeof user.skills === 'string' && user.skills.trim() && (
+                                {user.skills && user.skills.length > 0 && (
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Skills</h3>
                                         <div className="flex flex-wrap gap-2">
-                                            {user.skills.split(',').filter(skill => skill.trim()).map((skill, index) => (
+                                            {(Array.isArray(user.skills) 
+                                                ? user.skills 
+                                                : user.skills.split(',')
+                                            ).filter(skill => skill && (typeof skill === 'string' ? skill.trim() : skill)).map((skill, index) => (
                                                 <span
                                                     key={index}
                                                     className="px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full border border-blue-200 dark:border-blue-700"
                                                 >
-                                                    {skill.trim()}
+                                                    {typeof skill === 'string' ? skill.trim() : skill}
                                                 </span>
                                             ))}
                                         </div>
@@ -494,53 +551,6 @@ const Profile = () => {
                         )}
                     </div>
                 </div>
-
-                {/* Stats Cards */}
-                {!isEditing && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-professional p-6 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Connections</h3>
-                                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">24</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-professional p-6 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Matches</h3>
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">12</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-professional p-6 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Messages</h3>
-                                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">8</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

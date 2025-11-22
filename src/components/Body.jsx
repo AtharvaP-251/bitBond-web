@@ -13,24 +13,28 @@ const Body = () => {
     const [isAuthChecking, setIsAuthChecking] = useState(true);
 
     const fetchProfile = useCallback(async () => {
+        console.log("Body: Fetching profile...");
         try {
             const res = await axios.get(`${BASE_URL}/profile`, {
                 withCredentials: true,
             });
+            console.log("Body: Profile fetched successfully", res.data.data);
             dispatch(addUser(res.data.data));
         } catch (err) {
-            console.log("Not authenticated", err);
+            console.log("Body: Not authenticated", err);
         } finally {
             setIsAuthChecking(false);
         }
     }, [dispatch]);
     
     useEffect(() => {
-        // Skip if user already exists in Redux (e.g., from login)
+        // If user already exists in Redux (e.g., from login/signup), skip profile fetch
         if (user) {
+            console.log("Body: User already in Redux, skipping profile fetch", user);
             setIsAuthChecking(false);
             return;
         }
+        // Only fetch profile if no user in Redux
         fetchProfile();
     }, [user, fetchProfile]);
 
