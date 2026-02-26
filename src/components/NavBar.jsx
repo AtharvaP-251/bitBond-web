@@ -44,13 +44,13 @@ const NavBar = () => {
     useEffect(() => {
         fetchUnreadCount();
         const interval = setInterval(fetchUnreadCount, POLLING_INTERVALS.NOTIFICATIONS);
-        
+
         // Listen for custom event when notifications are marked as read
         const handleNotificationsRead = () => {
             fetchUnreadCount();
         };
         window.addEventListener('notificationsRead', handleNotificationsRead);
-        
+
         return () => {
             clearInterval(interval);
             window.removeEventListener('notificationsRead', handleNotificationsRead);
@@ -74,10 +74,9 @@ const NavBar = () => {
     const NavItem = ({ to, children, onClick }) => (
         <button
             onClick={onClick || (() => navigate(to))}
-            className={`relative px-4 py-2.5 rounded-xl font-medium text-sm btn-minimal ${
-                isActiveRoute(to)
-                ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30 shadow-sm'
-                : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-800'
+            className={`relative px-4 py-2.5 rounded-xl font-medium text-sm btn-minimal ${isActiveRoute(to)
+                    ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30 shadow-sm'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-800'
                 }`}
             style={{ transition: 'color 200ms ease-out, background-color 200ms ease-out' }}
         >
@@ -99,6 +98,12 @@ const NavBar = () => {
                                 onClick={() => navigate('/')}
                                 className="flex items-center space-x-2 group btn-minimal"
                             >
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:shadow-blue-500/30 transition-shadow">
+                                    <span className="text-white font-bold text-lg tracking-tighter">bB</span>
+                                </div>
+                                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 hidden sm:block">
+                                    bitBond
+                                </span>
                             </button>
                         </div>
 
